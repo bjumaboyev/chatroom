@@ -10,7 +10,7 @@ async function login() {
             credentials: 'include' // This tells the browser to include cookies in the request
         });
         if (response.ok) {
-            window.location.href = `/?username=${username}`;
+            window.location.href = `/chat.html?username=${username}`;
         } else {
             alert(await response.text());
         }
@@ -31,7 +31,7 @@ async function signup() {
             body: JSON.stringify({ username, email, password })
         });
         if (response.ok) {
-            window.location.href = 'login.html';
+            window.location.href = '/';
         } else {
             alert(await response.text());
         }

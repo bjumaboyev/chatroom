@@ -124,7 +124,7 @@
             await validateToken();
             if (username) {
                 // Websocket connection
-                socket = new WebSocket(`ws://bjumaboyev-chatroom.onrender.com/?username=${username}`);
+                socket = new WebSocket(`ws://bjumaboyev-chatroom.onrender.com/chat.html?username=${username}`);
                 
                 socket.onopen = () => {
                     console.log('Connected to WebSocket server');
