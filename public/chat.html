@@ -112,7 +112,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (data.username === urlParams.get('username')) username = data.username;
-                    else window.location.href = '/';
+                    else logout();
                 } else {
                     window.location.href = '/';
                 }
