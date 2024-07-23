@@ -147,7 +147,7 @@ app.get('/validate-token', (req, res) => {
 
 // Create and export the HTTP server
 const server = app.listen(PORT, () => {
-    console.log(`HTTP server running on http://localhost:${PORT}`);
+    console.log(`HTTP server running on PORT ${PORT}`);
 })
 
 module.exports = server;
