@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatroom</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            background-color:#4ac7bb;
+            color: #fff;
+        }
+
+        .header {
+            align-items: center;
+            box-sizing: border-box;
+            display: flex;
+            flex: 0 0 auto;
+            font-size: 24px;
+            justify-content: space-between;
+            height: 64px;
+            width: 100%;
+            background-color: #138e8e;
+            padding: 0 50px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.88);
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .message-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: start;
+            margin-top: 100px;
+            color: rgb(0, 0, 0);
+            width: 50%;
+            font-size: 18px;
+        }
+
+        #messages { border: none; padding: 5px; height: 300px; overflow-y: scroll; margin-top: 1px; width: 100%;}
+        #messageInput { width: calc(25% - 22px); margin: 10px; padding: 5px; border-radius: 4px;}
+
+        #send {
+            padding: 10px;
+            margin: 10px 0;
+            width: 5%;
+            height: min-content;
+            border: none;
+            border-radius: 8px;
+            background-color: #2d7b6c;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        #send:hover {
+            background-color: #1b4d41;
+        }
+
+        #log-out {
+            color: #fff;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        Chatroom
+        <button id="log-out" onclick="logout()">Log Out</button>
+    </div>
+    <div class="message-container">
+        <div id="messages"></div>
+    </div>
+    <input type="text" id="messageInput" placeholder="Type a message...">
+    <button id="send" onclick="sendMessage()">Send</button>
+
+    <script>
+        let username;
+        let socket;
+
+        async function validateToken() {
+            try {
+                const response = await fetch('/validate-token', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    username = data.username;
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Error validating token:', error);
+                window.location.href = '/';
+            }
+        };
+
+        async function logout() {
+            try {
+                const response = await fetch('/logout', {
+                    method: "GET",
+                    credentials: "include"
+                });
+                if (response.ok) {
+                    window.location.href = '/';
+                } else {
+                    console.error('Failed to log out');
+                }
+            } catch (err) {
+                console.error("Error during logout:", err);
+            }
+        };
+
+        async function init() {
+            await validateToken();
+            if (username) {
+                // Websocket connection
+                socket = new WebSocket(`ws://bjumaboyev-chatroom.onrender.com/?username=${username}`);
+                
+                socket.onopen = () => {
+                    console.log('Connected to WebSocket server');
+                };
+
+                socket.onmessage = event => {
+                    const chat = document.getElementById('messages');
+                    const message = document.createElement('div');
+                    message.textContent = event.data;
+                    message.style.paddingTop = "2px";
+                    chat.appendChild(message);
+                    chat.scrollTop = chat.scrollHeight; // Auto-scroll to the bottom
+                };
+
+                socket.onclose = () => {
+                    console.log('Disconnected from WebSocket server');
+                };
+            }
+        };
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (message) {
+                socket.send(message);
+                messageInput.value = '';
+            }
+        };
+        
+        window.onload = init;
+    </script>
+</body>
+</html>

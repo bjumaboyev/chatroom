@@ -119,14 +119,14 @@ app.get('/logout', (req, res) => {
 app.use((req, res, next) => {
     const token = req.cookies.token;
     if (!token) {
-        return res.redirect('/login.html');
+        return res.redirect('/');
     }
 
     try {
         jwt.verify(token, jwtSecret);
         next();
     } catch (err) {
-        res.redirect('/login.html')
+        res.redirect('/')
     }
 });
 
