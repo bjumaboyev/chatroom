@@ -105,30 +105,43 @@
             }
         };
 
-        async function init() {
-            const urlParams = new URLSearchParams(window.location.search);
-            username = urlParams.get('username');
-            if (username) {
-                // Websocket connection
-                socket = new WebSocket(`wss://bjumaboyev-chatroom.onrender.com/chat.html?username=${username}`);
-                
-                socket.onopen = () => {
-                    console.log('Connected to WebSocket server');
-                };
-
-                socket.onmessage = event => {
-                    const chat = document.getElementById('messages');
-                    const message = document.createElement('div');
-                    message.textContent = event.data;
-                    message.style.paddingTop = "2px";
-                    chat.appendChild(message);
-                    chat.scrollTop = chat.scrollHeight; // Auto-scroll to the bottom
-                };
-
-                socket.onclose = () => {
-                    console.log('Disconnected from WebSocket server');
-                };
+        async function validateToken() {
+            try {
+                const response = await fetch('/validate-token', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    username = data.username;
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Error validating token:', error);
+                window.location.href = '/';
             }
+        };
+
+        async function init() {
+            await validateToken();
+            // Websocket connection
+            socket = new WebSocket(`wss://bjumaboyev-chatroom.onrender.com/chat.html?username=${username}`);
+            
+            socket.onopen = () => {
+                console.log('Connected to WebSocket server');
+            };
+
+            socket.onmessage = event => {
+                const chat = document.getElementById('messages');
+                const message = document.createElement('div');
+                message.textContent = event.data;
+                message.style.paddingTop = "2px";
+                chat.appendChild(message);
+                chat.scrollTop = chat.scrollHeight; // Auto-scroll to the bottom
+            };
+
+            socket.onclose = () => {
+                console.log('Disconnected from WebSocket server');
+            };
+
         };
 
         function sendMessage() {
