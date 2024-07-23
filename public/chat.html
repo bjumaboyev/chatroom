@@ -110,7 +110,7 @@
             username = urlParams.get('username');
             if (username) {
                 // Websocket connection
-                socket = new WebSocket(`ws://bjumaboyev-chatroom.onrender.com/chat.html?username=${username}`);
+                socket = new WebSocket(`wss://bjumaboyev-chatroom.onrender.com/chat.html?username=${username}`);
                 
                 socket.onopen = () => {
                     console.log('Connected to WebSocket server');
