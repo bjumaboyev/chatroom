@@ -89,21 +89,6 @@
         let username;
         let socket;
 
-        async function validateToken() {
-            try {
-                const response = await fetch('/validate-token', { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
-                    username = data.username;
-                } else {
-                    window.location.href = '/';
-                }
-            } catch (error) {
-                console.error('Error validating token:', error);
-                window.location.href = '/';
-            }
-        };
-
         async function logout() {
             try {
                 const response = await fetch('/logout', {
@@ -121,7 +106,8 @@
         };
 
         async function init() {
-            await validateToken();
+            const urlParams = new URLSearchParams(window.location.search);
+            username = urlParams.get('username');
             if (username) {
                 // Websocket connection
                 socket = new WebSocket(`ws://bjumaboyev-chatroom.onrender.com/chat.html?username=${username}`);

@@ -10,7 +10,7 @@ async function login() {
             credentials: 'include' // This tells the browser to include cookies in the request
         });
         if (response.ok) {
-            window.location.href = `/chat.html?username=${username}`;
+            await validateToken();
         } else {
             alert(await response.text());
         }
@@ -37,5 +37,19 @@ async function signup() {
         }
     } else {
         alert('All fields are required');
+    }
+};
+
+async function validateToken() {
+    try {
+        const response = await fetch('/validate-token', { credentials: 'include' });
+        if (response.ok) {
+            const data = await response.json();
+            window.location.href = `/chat.html?username=${data.username}`;
+        } else {
+            alert(await response.text());
+        }
+    } catch (error) {
+        console.error('Error validating token:', error);
     }
 };
