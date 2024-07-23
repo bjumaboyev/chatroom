@@ -128,22 +128,27 @@
             if (username) {
                 // Websocket connection
                 socket = new WebSocket(`wss://bjumaboyev-chatroom.onrender.com/chat.html?username=${username}`);
-                
-                socket.onopen = () => {
-                    console.log('Connected to WebSocket server');
-                };
 
                 socket.onmessage = event => {
-                    const chat = document.getElementById('messages');
-                    const message = document.createElement('div');
-                    message.textContent = event.data;
-                    message.style.paddingTop = "2px";
-                    chat.appendChild(message);
-                    chat.scrollTop = chat.scrollHeight; // Auto-scroll to the bottom
-                };
-
-                socket.onclose = () => {
-                    console.log('Disconnected from WebSocket server');
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'message') {
+                        const chat = document.getElementById('messages');
+                        const message = document.createElement('div');
+                        message.textContent = `${data.username}: ${data.message}`;
+                        message.style.paddingTop = "2px";
+                        chat.appendChild(message);
+                        chat.scrollTop = chat.scrollHeight; // Auto-scroll to the bottom
+                    } else if (data.type === 'userList') {
+                        const usersDiv = document.getElementById('users');
+                        usersDiv.innerHTML = '<b>Connected users: </b>' + data.users.join(', ');
+                    } else if (data.type === 'notify') {
+                        const chat = document.getElementById('messages');
+                        const message = document.createElement('div');
+                        message.textContent = data.message;
+                        message.style.paddingTop = "2px";
+                        chat.appendChild(message);
+                        chat.scrollTop = chat.scrollHeight;
+                    }
                 };
             } else {
                 window.location.href = '/';

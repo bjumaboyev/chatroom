@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const { decode } = require("punycode");
 require('dotenv').config();
 
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
@@ -130,7 +129,6 @@ app.use((req, res, next) => {
     }
 });
 
-// Token validation endpoint
 app.get('/validate-token', (req, res) => {
     const token = req.cookies.token;
     if (!token) {

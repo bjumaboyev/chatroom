@@ -4,6 +4,8 @@ const server = require('./app'); // Import the HTTP server from app.js
 
 const wss = new WebSocket.Server({ server });
 
+let connectedUsers = [];
+
 wss.on('connection', (socket, req) => {
     const parameters = url.parse(req.url, true).query;
     const username = parameters.username;
@@ -14,26 +16,30 @@ wss.on('connection', (socket, req) => {
     }
 
     socket.username = username;
+    connectedUsers.push({ username, socket });
+    broadcastConnectedUsers();
     console.log(`${username} connected`);
 
     // Notify all clients about the new user
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(`${username} has joined the chat`);
+            client.send(JSON.stringify({ type: 'notify', message: `${username} has joined the chat` }));
         }
     });
+
 
     // Handle incoming messages from the client
     socket.on('message', (message) => {
+        const decodedMessage = message.toString();
         console.log(`Received from ${username}: ${message}`);
 
-    // Broadcast the message to all connected clients
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(`${username}: ${message}`);
-        }
+        // Broadcast the message to all connected clients
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: 'message', username, message: decodedMessage }));
+            }
+        });
     });
-});
 
     // Handle client disconnection
     socket.on('close', () => {
@@ -42,8 +48,17 @@ wss.on('connection', (socket, req) => {
         // Notify all clients about the disconnection
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-                client.send(`${username} has left the chat`);
+                client.send(JSON.stringify({ type: 'notify', message: `${username} has left the chat` }));
             }
         });
+        connectedUsers = connectedUsers.filter(user => user.socket !== socket);
+        broadcastConnectedUsers();
     });
+
+    function broadcastConnectedUsers() {
+        const userList = connectedUsers.map(user => user.username);
+        wss.clients.forEach((client) => {
+            client.send(JSON.stringify({type: 'userList', users: userList}));
+        });
+    };
 });
