@@ -41,7 +41,7 @@
             text-align: start;
             margin-top: 20px;
             color: rgb(0, 0, 0);
-            width: 90%;
+            width: 50%;
             font-size: 18px;
             display: flex;
             flex-direction: column;
@@ -76,13 +76,14 @@
         #send {
             padding: 10px;
             margin: 10px 10px;
-            width: 50px;
+            width: 100px;
             height: 36px;
             border: none;
             border-radius: 8px;
             background-color: #2d7b6c;
             color: #fff;
-            font-size: 12px;
+            font-size: 16px;
+            align-content: center;
             cursor: pointer;
         }
 
@@ -97,6 +98,12 @@
             cursor: pointer;
             font-size: 24px;
             font-weight: bold;
+        }
+
+        #timestamp {
+            font-size: 0.8em;
+            color: gray;
+            float: right;
         }
 
         @media (max-width: 768px) {
@@ -122,6 +129,7 @@
             #send {
                 width: 100px;
                 margin-left: 10px;
+                font-size: 12px;
             }
         }
     </style>
@@ -136,6 +144,7 @@
     <div class="message-container">
         <div id="users"></div>
         <div id="messages"></div>
+        <div id="timestamp"></div>
         <div class="input-container">
             <input type="text" id="messageInput" placeholder="Type a message...">
             <button id="send" onclick="sendMessage()">Send</button>
@@ -191,7 +200,7 @@
                     if (data.type === 'message') {
                         const chat = document.getElementById('messages');
                         const message = document.createElement('div');
-                        message.innerHTML = `${data.username}: ${data.message}`;
+                        message.innerHTML = `${data.username}: ${data.message}<div id="timestamp">${data.timestamp}</div>`;
                         message.style.paddingTop = "2px";
                         chat.appendChild(message);
                         chat.scrollTop = chat.scrollHeight; // Auto-scroll to the bottom
@@ -210,6 +219,13 @@
             } else {
                 window.location.href = '/';
             }
+
+            document.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendMessage()
+                }
+            });
         };
 
         function sendMessage() {
