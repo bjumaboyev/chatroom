@@ -106,7 +106,7 @@
             }
 
             .message-container {
-                width: 100%;
+                width: 90%;
                 margin-top: 10px;
                 padding: 10px;
             }
@@ -191,7 +191,7 @@
                     if (data.type === 'message') {
                         const chat = document.getElementById('messages');
                         const message = document.createElement('div');
-                        message.innerHTML = twemoji.parse(`${data.username}: ${data.message}`);
+                        message.innerHTML = `${data.username}: ${data.message}`;
                         message.style.paddingTop = "2px";
                         chat.appendChild(message);
                         chat.scrollTop = chat.scrollHeight; // Auto-scroll to the bottom
