@@ -30,6 +30,7 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.88);
             text-align: center;
             font-weight: bold;
+            color: #fff;
         }
 
         .message-container {
@@ -38,25 +39,50 @@
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: start;
-            margin-top: 100px;
+            margin-top: 20px;
             color: rgb(0, 0, 0);
-            width: 50%;
+            width: 90%;
             font-size: 18px;
+            display: flex;
+            flex-direction: column;
+            height: 60vh;
         }
 
-        #messages { border: none; padding: 5px; height: 300px; overflow-y: scroll; margin-top: 1px; width: 100%;}
-        #messageInput { width: calc(25% - 22px); margin: 10px; padding: 5px; border-radius: 4px;}
+        #messages { 
+            border: none; 
+            padding: 5px; 
+            height: 100%; 
+            overflow-y: scroll; 
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        .input-container {
+            display: flex;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        #messageInput { 
+            width: calc(100% - 70px); 
+            margin: 10px 0 0; 
+            padding: 10px; 
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            height: 16px;
+            flex-grow: 1;
+        }
 
         #send {
             padding: 10px;
-            margin: 10px 0;
-            width: 5%;
-            height: min-content;
+            margin: 10px 10px;
+            width: 50px;
+            height: 36px;
             border: none;
             border-radius: 8px;
             background-color: #2d7b6c;
             color: #fff;
-            font-size: 14px;
+            font-size: 12px;
             cursor: pointer;
         }
 
@@ -72,37 +98,53 @@
             font-size: 24px;
             font-weight: bold;
         }
+
+        @media (max-width: 768px) {
+            .header {
+                font-size: 20px;
+                padding: 0 10px;
+            }
+
+            .message-container {
+                width: 100%;
+                margin-top: 10px;
+                padding: 10px;
+            }
+
+            #log-out {
+                font-size: 20px;
+            }
+
+            #messageInput {
+                width: 100px;
+            }
+
+            #send {
+                width: 100px;
+                margin-left: 10px;
+            }
+        }
     </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap">
+    <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js"></script>
 </head>
 <body>
     <div class="header">
         Chatroom
-        <button id="log-out" onclick="logout()">Log Out</button>
+        <button id="log-out" onclick="logout()">Logout</button>
     </div>
     <div class="message-container">
         <div id="messages"></div>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Type a message...">
+            <button id="send" onclick="sendMessage()">Send</button>
+        </div>
     </div>
-    <input type="text" id="messageInput" placeholder="Type a message...">
-    <button id="send" onclick="sendMessage()">Send</button>
 
     <script>
         let username;
         let socket;
-
-        async function validateToken() {
-            try {
-                const response = await fetch('/validate-token', { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
-                    username = data.username;
-                } else {
-                    window.location.href = '/';
-                }
-            } catch (error) {
-                console.error('Error validating token:', error);
-                window.location.href = '/';
-            }
-        };
+        let urlParams;
 
         async function logout() {
             try {
@@ -120,28 +162,52 @@
             }
         };
 
+        async function validateToken() {
+            try {
+                const response = await fetch('/validate-token', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.username === urlParams.get('username')) username = data.username;
+                    else await logout();
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (err) {
+                console.error('Error validating token:', err);
+                window.location.href = '/';
+            }
+        };
+
         async function init() {
+            urlParams = new URLSearchParams(window.location.search);
             await validateToken();
             if (username) {
                 // Websocket connection
-                socket = new WebSocket(`ws://bjumaboyev-chatroom.onrender.com/chat.html?username=${username}`);
-                
-                socket.onopen = () => {
-                    console.log('Connected to WebSocket server');
-                };
+                socket = new WebSocket(`wss://bjumaboyev-chatroom.onrender.com/chat.html?username=${username}`);
 
                 socket.onmessage = event => {
-                    const chat = document.getElementById('messages');
-                    const message = document.createElement('div');
-                    message.textContent = event.data;
-                    message.style.paddingTop = "2px";
-                    chat.appendChild(message);
-                    chat.scrollTop = chat.scrollHeight; // Auto-scroll to the bottom
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'message') {
+                        const chat = document.getElementById('messages');
+                        const message = document.createElement('div');
+                        message.innerHTML = twemoji.parse(`${data.username}: ${data.message}`);
+                        message.style.paddingTop = "2px";
+                        chat.appendChild(message);
+                        chat.scrollTop = chat.scrollHeight; // Auto-scroll to the bottom
+                    } else if (data.type === 'userList') {
+                        const usersDiv = document.getElementById('users');
+                        usersDiv.innerHTML = '<b>Connected users: </b>' + data.users.join(', ');
+                    } else if (data.type === 'notify') {
+                        const chat = document.getElementById('messages');
+                        const message = document.createElement('div');
+                        message.textContent = data.message;
+                        message.style.paddingTop = "2px";
+                        chat.appendChild(message);
+                        chat.scrollTop = chat.scrollHeight;
+                    }
                 };
-
-                socket.onclose = () => {
-                    console.log('Disconnected from WebSocket server');
-                };
+            } else {
+                window.location.href = '/';
             }
         };
 
