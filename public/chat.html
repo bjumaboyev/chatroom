@@ -198,9 +198,15 @@
                 socket.onmessage = event => {
                     const data = JSON.parse(event.data);
                     if (data.type === 'message') {
+                        const time = new Date(data.timestamp).toLocaleString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                        });
                         const chat = document.getElementById('messages');
                         const message = document.createElement('div');
-                        message.innerHTML = `${data.username}: ${data.message}<div id="timestamp">${data.timestamp}</div>`;
+                        message.innerHTML = `${data.username}: ${data.message}<div id="timestamp">${time}</div>`;
                         message.style.paddingTop = "2px";
                         chat.appendChild(message);
                         chat.scrollTop = chat.scrollHeight; // Auto-scroll to the bottom

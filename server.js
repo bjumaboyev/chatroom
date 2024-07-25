@@ -30,11 +30,7 @@ wss.on('connection', (socket, req) => {
 
     // Handle incoming messages from the client
     socket.on('message', (message) => {
-        const timestamp = new Date().toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
+        const timestamp = new Date();
         const decodedMessage = message.toString();
         console.log(`Received from ${username}: ${message}`);
 
@@ -45,7 +41,7 @@ wss.on('connection', (socket, req) => {
                     type: 'message', 
                     username, 
                     message: decodedMessage,
-                    timestamp: timestamp
+                    timestamp: timestamp.toString()
                 }));
             };
         });
